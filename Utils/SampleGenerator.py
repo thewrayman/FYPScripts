@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import logging
+import argparse
 """
 	This script will take a file, eg. samplefile.exe and create a host of sample files from it.
 	Default generation is 100 samples varying from:
@@ -26,14 +27,14 @@ REP_TYPES = ['KnownClean', 'ProbablyClean',
 
 class SampleFile:
     """
-            Small class to store the file to copy and the user input for how many to copy
+        Small class to store the file to copy and the user input for how many to copy
     """
 
     def __init__(self, filename, totalCopies=TOTAL_COPIES, catCopies=CAT_COPIES):
         self.fileName = filename
         self.totalCopies = totalCopies
         self.catCopies = catCopies
-        logging.info("[%s]: Created SampleFile with" % (
+        logging.info("[%s]: Created SampleFile with %s, %d, %d" % (
             self.__class__.__name__, self.fileName, self.totalCopies, self.catCopies))
 
 
@@ -95,62 +96,52 @@ class SampleGenerator:
 
 
 def main():
-    samplename = None
-    totalcopies = TOTAL_COPIES
+    parser = argparse.ArgumentParser(description="Generate a number of samples from a single file")
+    parser.add_argument("-f", "--filepath", dest="samplename", required=True, help="Filepath of the sample to generate")
+    parser.add_argument("-t", "--totalcopies", dest="totalcopies", default=TOTAL_COPIES, help="The total number of samples to be generated(divisible by 5)")
+
+    try:
+        args = parser.parse_args()
+    except Exception, e:
+        logging.error("[%s]: Exiting %s due to no -f flag\n" % (os.path.basename(__file__), sys._getframe().f_code.co_name))
+        logging.error("[%s]: %s" % (os.path.basename(__file__), e))
+
+    samplename = args.samplename
+    totalcopies = int(args.totalcopies)
     catcopies = CAT_COPIES
     success = True
-    args = sys.argv[1:]
 
     logging.info("\n[%s]: Entering %s with args: " % (
-        os.path.basename(__file__), sys._getframe().f_code.co_name, args))
+        os.path.basename(__file__), sys._getframe().f_code.co_name))
 
-    if "-f" not in args:
-        print "*ERROR* A target sample must be supplied:\n-f c:\\xyz\\myfile.exe"
-        logging.info("[%s]: Exiting %s due to no -f flag\n" %
-                     (os.path.basename(__file__), sys._getframe().f_code.co_name,))
-        exit()
+    if (os.path.isfile(samplename)):
+        success = success and True
 
-    for arg in range(0, len(args)):
-        if args[arg] == "-f":
-            if (not arg == len(args) - 1) and (os.path.isfile(args[arg + 1])):
-                if samplename is None:
-                    samplename = args[arg + 1]
-                    success = success and True
-                    print "Using sample file %s" % samplename
-                    logging.info("[%s]: Using sample file %s" %
-                                 (os.path.basename(__file__), samplename))
-                else:
-                    print "*ERROR* Please only enter one parameter for sample file\n"
-                    logging.info("[%s]: More than one file provided, please check" % (
-                        os.path.basename(__file__)))
-                    success = success and False
-            else:
-                print "*ERROR* Please make sure the filename is valid\n"
-                logging.info("[%s]: Exiting %s due to invalid filename %s" % (
-                    os.path.basename(__file__), args[arg + 1]))
-                logging.info("[%s]: ***EXIT***" % (os.path.basename(__file__)))
-                exit()
-            pass
-        if args[arg] == "-t":
-            # print "T value is %s and the mod is
-            # %d"%(args[arg+1],(int(args[arg+1])%5))
-            if (not arg == len(args) - 1) and ((int(args[arg + 1]) % 5) == 0):
-                totalcopies = int(args[arg + 1])
-                catcopies = totalcopies / 5
-                success = success and True
-                print "Found new total copies, using %d\n" % totalcopies
-                logging.info("[%s]: Found totalcopies override: %d" %
-                             (os.path.basename(__file__), totalcopies))
-            else:
-                print "*ERROR* Please make sure you enter a valid total number.\ni.e, must be divisible by 5\n"
-                logging.info("[%s]: TotalCopies override for %d failed, ensure it is divisible by 5" % (
-                    os.path.basename(__file__), totalcopies))
+        logging.info("[%s]: Using sample file %s" %
+                     (os.path.basename(__file__), samplename))
+    else:
+        print "*ERROR* Please make sure the filename is valid\n"
+        logging.info("[%s]: Exiting %s due to invalid filename %s" % (
+            os.path.basename(__file__), samplename))
+        logging.info("[%s]: ***EXIT***" % (os.path.basename(__file__)))
+        exit(13)
+
+    if (totalcopies % 5) == 0:
+        catcopies = totalcopies / 5
+        success = success and True
+
+        logging.info("[%s]: Found totalcopies override: %d" %
+                     (os.path.basename(__file__), totalcopies))
+    else:
+        totalcopies = TOTAL_COPIES
+        catcopies = CAT_COPIES
+        print "*ERROR* Please make sure you enter a valid total number.\ni.e, must be divisible by 5\n"
+        logging.info("[%s]: TotalCopies override for %d failed, ensure it is divisible by 5" % (
+            os.path.basename(__file__), totalcopies))
+
 
     if success:
         print "\nsuccess!"
-        print samplename
-        print totalcopies
-        print catcopies
         logging.info("[%s]: Success! With sample: %s, totalcopies: %d, catcopies: %d" % (
             os.path.basename(__file__), samplename, totalcopies, catcopies))
 
