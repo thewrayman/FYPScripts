@@ -61,7 +61,7 @@ class SampleGenerator:
         self.extension = filename[1]
         self.path = os.path.dirname(os.path.abspath(self.SampleFile))
 
-        if (not self.path == None) and (not self.extension == None) and (not self.shortName == None):
+        if (self.path is not None) and (self.extension is not None) and (self.shortName is not None):
             logging.info("[%s]: Exiting %s with True" % (
                 self.__class__.__name__, sys._getframe().f_code.co_name))
             return True
@@ -113,7 +113,7 @@ def main():
     for arg in range(0, len(args)):
         if args[arg] == "-f":
             if (not arg == len(args) - 1) and (os.path.isfile(args[arg + 1])):
-                if samplename == None:
+                if samplename is None:
                     samplename = args[arg + 1]
                     success = success and True
                     print "Using sample file %s" % samplename
