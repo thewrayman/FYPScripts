@@ -29,6 +29,6 @@ class FileExtensions:
 
 
 class PacketType:
-    TCP = 0x06
-    UDP = 0X11
-    ICMP = 0x01
+    TCP = 0x06  #6
+    UDP = 0X11  #17
+    ICMP = 0x01 #1
